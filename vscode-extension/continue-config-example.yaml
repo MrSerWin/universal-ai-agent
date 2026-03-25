@@ -1,0 +1,447 @@
+name: Local Agent
+version: 1.0.0
+schema: v1
+models:
+  - name: Qwen2.5-Coder 32B (Q8)
+    provider: ollama
+    model: qwen2.5-coder:32b-instruct-q8_0
+    apiBase: http://localhost:11434
+    roles:
+      - chat
+      - edit
+      - apply
+
+  - name: Qwen2.5-Coder 7B (Fast)
+    provider: ollama
+    model: qwen2.5-coder:7b-instruct-q8_0
+    apiBase: http://localhost:11434
+    roles:
+      - autocomplete
+
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text:latest
+    apiBase: http://localhost:11434
+    roles:
+      - embed
+
+slashCommands:
+
+  # ============================================================
+  # Code Quality
+  # ============================================================
+
+  - name: review
+    description: "Code review for bugs, quality, and security"
+    prompt: |
+      Review the following code for:
+      - Bugs and logic errors
+      - Security vulnerabilities
+      - Performance issues
+      - Code quality and readability
+
+      For each issue found, specify:
+      - **Line** — description
+      - **Severity**: critical / warning / info
+      - **Fix**: suggested fix
+
+      ```{{selectedText}}```
+
+  - name: security
+    description: "Security audit (OWASP Top 10)"
+    prompt: |
+      Perform a security audit of this code. Check for:
+      1. Injection (SQL, command, XSS)
+      2. Authentication/authorization issues
+      3. Data exposure (PII, secrets)
+      4. Input validation
+      5. Error handling leaking info
+
+      For each vulnerability:
+      - **[CRITICAL/HIGH/MEDIUM/LOW]** — Title
+      - **Description**: what's wrong
+      - **Fix**: how to fix it
+
+      ```{{selectedText}}```
+
+  - name: fix-test
+    description: "Write tests, run them, and fix failures"
+    prompt: |
+      Analyze the selected code:
+      ```{{selectedText}}```
+
+      Follow these steps:
+      1. Determine which file should contain the tests.
+      2. Write unit tests using the project's test framework. Suggest changes for the test file.
+      3. After I accept the test changes, run `npm test` in the terminal.
+      4. Analyze the console output.
+      5. If tests pass, report success.
+      6. If tests fail, analyze the error and suggest fixes for the ORIGINAL code (in `{{filepath}}`).
+
+  - name: refactor
+    description: "Refactor for readability and maintainability"
+    prompt: |
+      Refactor the following code to improve:
+      - Readability and naming
+      - Reduce complexity
+      - Remove duplication
+      - Follow SOLID principles where applicable
+
+      Keep the same functionality. Explain what you changed and why.
+
+      ```{{selectedText}}```
+
+  - name: explain
+    description: "Explain the selected code in detail"
+    prompt: |
+      Explain this code in detail:
+      - What it does (high level)
+      - How it works (step by step)
+      - Key dependencies and side effects
+      - Potential edge cases
+
+      ```{{selectedText}}```
+
+  - name: optimize
+    description: "Optimize performance: speed, rendering, bundle size"
+    prompt: |
+      Analyze the following code for performance issues and optimize it:
+
+      Focus areas:
+      1. **Loading speed** — lazy loading, code splitting, tree shaking
+      2. **Rendering** — unnecessary re-renders, memo/useMemo/useCallback (React), virtual scrolling
+      3. **Bundle size** — heavy dependencies, dead code, dynamic imports
+      4. **Algorithms** — time/space complexity, unnecessary iterations
+      5. **Network** — batching requests, caching, reducing payload size
+      6. **Images/assets** — compression, modern formats (WebP/AVIF), responsive images
+
+      For each optimization:
+      - What changed and why
+      - Expected impact (estimated %)
+      - Any trade-offs
+
+      ```{{selectedText}}```
+
+  - name: harden
+    description: "Improve resilience: error handling, i18n, edge cases"
+    prompt: |
+      Harden the following code to make it production-ready:
+
+      Check and improve:
+      1. **Error handling** — missing try/catch, unhandled promises, error boundaries
+      2. **Input validation** — missing type checks, boundary conditions, null/undefined
+      3. **Edge cases** — empty arrays, zero values, very long strings, concurrent access
+      4. **Text overflow** — truncation, wrapping, responsive text
+      5. **Loading states** — missing skeletons, spinners, optimistic updates
+      6. **Empty states** — no data scenarios, first-time user experience
+      7. **i18n readiness** — hardcoded strings, date/number formatting, RTL support
+
+      For each improvement, explain what could go wrong without it.
+
+      ```{{selectedText}}```
+
+  # ============================================================
+  # UI/UX Design (inspired by Impeccable)
+  # ============================================================
+
+  - name: audit
+    description: "Comprehensive UI audit: accessibility, performance, responsive, theming"
+    prompt: |
+      Perform a comprehensive UI audit of this code:
+
+      ## Accessibility (WCAG 2.1 AA)
+      - Color contrast ratios (4.5:1 text, 3:1 large text)
+      - ARIA labels and roles
+      - Keyboard navigation and focus management
+      - Screen reader compatibility
+      - Alt text for images
+
+      ## Responsive Design
+      - Mobile-first approach
+      - Breakpoint consistency
+      - Touch targets (min 44x44px)
+      - Viewport handling
+
+      ## Performance
+      - Unnecessary re-renders
+      - Heavy CSS (unused rules, complex selectors)
+      - Image optimization
+      - Animation performance (GPU-accelerated properties)
+
+      ## Theming
+      - Dark mode support
+      - Design token usage (vs hardcoded values)
+      - Color system consistency
+
+      Rate each issue: **Critical** / **Major** / **Minor** / **Enhancement**
+
+      ```{{selectedText}}```
+
+  - name: critique
+    description: "UX design review: hierarchy, clarity, emotional resonance"
+    prompt: |
+      Evaluate the design effectiveness of this UI code from a UX perspective:
+
+      1. **Visual Hierarchy** — Is the most important content prominent? Is there a clear reading flow?
+      2. **Information Architecture** — Is content logically grouped? Are labels clear?
+      3. **Interaction Design** — Are interactive elements obvious? Feedback on actions?
+      4. **Emotional Resonance** — Does it feel professional/trustworthy/delightful?
+      5. **Cognitive Load** — Too many choices? Overwhelming layout?
+      6. **Consistency** — Patterns reused correctly? Spacing/sizing uniform?
+
+      For each observation:
+      - **Issue**: what's wrong
+      - **Impact**: how it affects users
+      - **Suggestion**: concrete improvement with code
+
+      ```{{selectedText}}```
+
+  - name: polish
+    description: "Final quality pass: alignment, spacing, consistency"
+    prompt: |
+      This is a final polish pass before shipping. Fix:
+
+      1. **Alignment** — elements that are visually misaligned
+      2. **Spacing** — inconsistent padding/margins, use 4px/8px grid
+      3. **Consistency** — mismatched font sizes, colors, border radii
+      4. **Details** — hover states, transitions, focus rings, cursor styles
+      5. **Typography** — line heights, letter spacing, font weights
+      6. **Shadows & borders** — consistent elevation system
+      7. **Icons** — consistent sizing, stroke width, alignment with text
+
+      Show the exact code changes. These should be small, precise fixes.
+
+      ```{{selectedText}}```
+
+  - name: animate
+    description: "Add purposeful animations and micro-interactions"
+    prompt: |
+      Review this UI code and add purposeful animations that improve usability:
+
+      Guidelines:
+      - **Entrance animations** — subtle fade/slide for content appearing
+      - **Micro-interactions** — button press feedback, toggle transitions, hover effects
+      - **State transitions** — smooth changes between loading/error/success states
+      - **Scroll-driven** — parallax, reveal-on-scroll where appropriate
+      - **Duration** — 150-300ms for micro-interactions, 300-500ms for page transitions
+      - **Easing** — use modern cubic-bezier or spring physics, avoid linear
+      - **Reduced motion** — always respect `prefers-reduced-motion`
+
+      Avoid:
+      - Animation for decoration only
+      - Delays that slow down the user
+      - Jarring or distracting movement
+
+      ```{{selectedText}}```
+
+  - name: colorize
+    description: "Add strategic color to monochromatic UI"
+    prompt: |
+      This UI is too monochromatic or visually flat. Add strategic color:
+
+      Guidelines:
+      - **Use OKLCH color space** for perceptually uniform colors
+      - **Primary action color** — one strong accent for CTAs and key actions
+      - **Semantic colors** — success (green), warning (amber), error (red), info (blue)
+      - **Surface hierarchy** — subtle background tints to separate content areas
+      - **Text hierarchy** — don't just use gray, try muted versions of brand colors
+      - **Dark mode** — ensure colors work in both themes
+      - **Contrast** — meet WCAG AA (4.5:1 for text)
+
+      Avoid:
+      - More than 3-4 distinct hues
+      - Pure black (#000) or pure white (#fff) — use near-black/white
+      - Overly saturated colors for large areas
+
+      Show specific CSS/style changes with the exact color values.
+
+      ```{{selectedText}}```
+
+  - name: typeset
+    description: "Fix typography: fonts, hierarchy, sizing, readability"
+    prompt: |
+      Improve the typography in this code:
+
+      Check and fix:
+      1. **Font stack** — use modern system fonts or well-paired web fonts
+      2. **Size scale** — use a modular scale (1.25 or 1.333 ratio), not random sizes
+      3. **Weight hierarchy** — headings (600-700), body (400), captions (400 smaller)
+      4. **Line height** — 1.5 for body, 1.2-1.3 for headings, 1.6+ for small text
+      5. **Measure** — optimal line length 45-75 characters (max-width on text containers)
+      6. **Letter spacing** — slightly positive for uppercase, negative for large headings
+      7. **Vertical rhythm** — consistent spacing between text blocks using the baseline grid
+
+      Avoid:
+      - More than 2 font families
+      - Font sizes below 14px for body text
+      - Pure gray for text — use warm or cool tints
+
+      ```{{selectedText}}```
+
+  - name: arrange
+    description: "Fix layout, spacing, and visual rhythm"
+    prompt: |
+      Improve the layout and spacing in this code:
+
+      Fix:
+      1. **Grid system** — use CSS Grid or Flexbox consistently, not ad-hoc positioning
+      2. **Spacing scale** — 4px base unit (4, 8, 12, 16, 24, 32, 48, 64, 96)
+      3. **Visual rhythm** — consistent vertical spacing between sections
+      4. **Grouping** — related items close together, unrelated items further apart (Gestalt)
+      5. **Alignment** — left-align text content, center-align hero/CTA sections
+      6. **White space** — add breathing room, don't cram everything together
+      7. **Responsive** — stack on mobile, side-by-side on desktop
+
+      Avoid:
+      - Magic numbers for spacing
+      - Mixing px/rem/em inconsistently
+      - Nested flexbox where grid is cleaner
+
+      ```{{selectedText}}```
+
+  - name: adapt
+    description: "Make responsive: different screens, devices, platforms"
+    prompt: |
+      Adapt this code to work across different screen sizes and devices:
+
+      1. **Mobile first** — start with mobile layout, enhance for larger screens
+      2. **Breakpoints** — sm (640px), md (768px), lg (1024px), xl (1280px)
+      3. **Touch targets** — minimum 44x44px for interactive elements
+      4. **Images** — responsive with srcset or picture element
+      5. **Typography** — fluid type using clamp() for headings
+      6. **Navigation** — hamburger/sheet on mobile, full nav on desktop
+      7. **Tables** — horizontal scroll or card layout on mobile
+      8. **Modals** — full-screen on mobile, centered on desktop
+
+      Test each breakpoint and show the responsive CSS changes.
+
+      ```{{selectedText}}```
+
+  - name: distill
+    description: "Strip to essence: remove unnecessary complexity"
+    prompt: |
+      Simplify this UI code by removing unnecessary complexity:
+
+      1. **Remove wrapper divs** that serve no purpose
+      2. **Simplify CSS** — remove redundant properties, use shorthands
+      3. **Reduce nesting** — flatten component trees
+      4. **Remove decorations** that don't help the user (excessive borders, shadows, gradients)
+      5. **Simplify interactions** — fewer clicks to reach the goal
+      6. **Merge similar components** — if two components differ by one prop, merge them
+      7. **Use native HTML** — before reaching for a library component
+
+      The goal: great design is simple, powerful, and clean.
+
+      ```{{selectedText}}```
+
+  - name: clarify
+    description: "Improve UX copy: labels, errors, instructions"
+    prompt: |
+      Improve the UX copy in this code:
+
+      Fix:
+      1. **Button labels** — use verbs ("Save changes" not "Submit"), be specific
+      2. **Error messages** — say what went wrong AND how to fix it
+      3. **Empty states** — helpful message + action, not just "No data"
+      4. **Form labels** — clear, concise, with helper text where needed
+      5. **Confirmation dialogs** — describe the action and consequence
+      6. **Loading text** — specific ("Loading your projects..." not "Please wait...")
+      7. **Tooltips** — only when needed, keep under 10 words
+      8. **Placeholder text** — show format/example, not label repeat
+
+      Avoid:
+      - Technical jargon ("Error 500", "null reference")
+      - Blaming the user ("Invalid input")
+      - Vague messages ("Something went wrong")
+
+      ```{{selectedText}}```
+
+  - name: onboard
+    description: "Design onboarding flow and first-time experience"
+    prompt: |
+      Design or improve the onboarding/first-time user experience for this code:
+
+      Consider:
+      1. **Empty states** — what does the user see before any data exists?
+      2. **Progressive disclosure** — show basics first, reveal advanced features later
+      3. **Quick wins** — help the user accomplish something meaningful fast
+      4. **Tooltips/tours** — non-intrusive guidance for key features
+      5. **Default content** — seed with example data so the UI isn't blank
+      6. **Skip option** — always let users skip onboarding
+      7. **Progress indication** — show how many steps remain
+
+      Provide the full implementation with components and styles.
+
+      ```{{selectedText}}```
+
+  - name: bolder
+    description: "Amplify safe designs to be more visually striking"
+    prompt: |
+      This design is too safe/generic. Make it more visually striking:
+
+      Techniques:
+      - **Larger typography** — hero headings at 48-72px+
+      - **Stronger contrast** — bigger difference between elements
+      - **Bold color accents** — vibrant accent on neutral background
+      - **Dramatic whitespace** — asymmetric, generous spacing
+      - **Visual anchors** — one dominant element per section
+      - **Texture/depth** — subtle gradients, grain, glassmorphism
+      - **Custom shapes** — break out of rectangular grid sometimes
+
+      Keep it professional — bold is not the same as chaotic.
+
+      ```{{selectedText}}```
+
+  - name: quieter
+    description: "Tone down overly aggressive designs"
+    prompt: |
+      This design is too loud/aggressive. Tone it down while keeping impact:
+
+      Adjust:
+      - **Reduce saturation** — use muted, sophisticated colors
+      - **Soften contrast** — not everything needs to scream
+      - **Smaller type** — reduce oversized non-heading text
+      - **Fewer effects** — remove unnecessary shadows, gradients, animations
+      - **Increase whitespace** — let elements breathe
+      - **Neutral palette** — shift toward warm grays and subtle accents
+      - **Consistent weight** — not every element should be bold
+
+      The goal: calm, confident, professional.
+
+      ```{{selectedText}}```
+
+  - name: delight
+    description: "Add moments of joy and personality"
+    prompt: |
+      Add moments of delight and personality to this UI:
+
+      Ideas:
+      - **Success celebrations** — confetti, checkmark animation, encouraging copy
+      - **Easter eggs** — subtle surprises for curious users
+      - **Personality in copy** — warm, human tone in messages
+      - **Playful transitions** — spring physics, bouncy reveals
+      - **Custom illustrations** — suggest SVG illustrations or Lottie animations
+      - **Sound design** — suggest where subtle sounds could enhance (optional)
+      - **Cursor effects** — custom cursors on special elements
+
+      Keep it tasteful — delight enhances, never distracts from the task.
+
+      ```{{selectedText}}```
+
+  - name: extract
+    description: "Extract reusable components and design tokens"
+    prompt: |
+      Analyze this code and extract reusable pieces:
+
+      1. **Design tokens** — colors, spacing, typography, shadows, border-radii → CSS variables or theme config
+      2. **Reusable components** — identify repeated patterns and extract into components
+      3. **Shared styles** — common utility classes or styled mixins
+      4. **Icon system** — standardize icon usage
+      5. **Layout components** — Stack, Grid, Container, Section
+
+      For each extraction:
+      - Show the component/token definition
+      - Show how to use it (replacing the original code)
+      - Note where else in the codebase it could be reused
+
+      ```{{selectedText}}```
