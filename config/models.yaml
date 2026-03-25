@@ -1,9 +1,26 @@
+# ============================================================
+# aide — Model configuration for macOS (Apple Silicon)
+#
+# Optimized for Macs with 64GB+ unified memory.
+# Apple Silicon shares RAM between CPU and GPU, so larger
+# models can be loaded entirely into memory without offloading.
+#
+# Key difference from NVIDIA setup:
+#   - No VRAM limit — full system RAM is available
+#   - Metal backend is ~2-3x slower per token than CUDA
+#   - Use higher quantization (Q8 instead of Q4) for better quality
+#   - 70B models are feasible on 96GB+ machines
+#
+# To use this config:
+#   cp config/models-mac.yaml config/models.yaml
+# ============================================================
+
 models:
   primary:
-    name: qwen2.5-coder:32b-instruct-q4_K_M
-    ollama_tag: qwen2.5-coder:32b-instruct-q4_K_M
+    name: qwen2.5-coder:32b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:32b-instruct-q8_0
     context_length: 32768
-    description: "Main coding model — generation, review, refactoring"
+    description: "Main coding model — Q8 quantization for better quality on Apple Silicon"
     roles:
       - code_generation
       - code_review
@@ -25,15 +42,23 @@ models:
       - commit_messages
 
   alternative:
-    name: deepseek-coder-v2:16b-lite-instruct-q8_0
-    ollama_tag: deepseek-coder-v2:16b-lite-instruct-q8_0
-    context_length: 65536
-    description: "Alternative 16B model — faster than 32B, good quality"
+    name: qwen2.5-coder:14b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:14b-instruct-q8_0
+    context_length: 32768
+    description: "Mid-size 14B model — good speed/quality balance on Mac"
     roles:
       - code_generation
       - code_review
       - refactoring
       - debugging
+
+  heavy:
+    name: llama3.1:70b-instruct-q4_K_M
+    ollama_tag: llama3.1:70b-instruct-q4_K_M
+    context_length: 16384
+    description: "70B model for complex architecture tasks (requires 96GB+ RAM)"
+    roles:
+      - architecture
 
   embedding:
     name: nomic-embed-text
@@ -44,12 +69,11 @@ models:
       - embedding
 
 routing:
-  # Which model to use based on task complexity
-  strategy: auto  # auto | primary_only | fast_only | alternative
+  strategy: auto
   complexity_threshold:
-    simple: fast        # autocomplete, commit msgs, classification
-    medium: primary     # code gen, review, refactoring
-    complex: primary    # architecture, multi-file changes
+    simple: fast            # autocomplete, commit msgs, classification
+    medium: primary         # code gen, review, refactoring (32B Q8)
+    complex: primary        # architecture, multi-file changes
 
 server:
   host: "0.0.0.0"
