@@ -83,14 +83,31 @@ install_ollama() {
     log "Installing Ollama..."
     curl -fsSL https://ollama.com/install.sh | sh
 
-    # Start ollama service
-    if ! pgrep -x "ollama" >/dev/null; then
-        log "Starting Ollama service..."
-        ollama serve &>/dev/null &
-        sleep 3
+    log "Ollama installed: $(ollama --version)"
+
+    # Start and wait for Ollama to be ready
+    start_ollama_service
+}
+
+start_ollama_service() {
+    if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+        log "Ollama service already running."
+        return
     fi
 
-    log "Ollama installed: $(ollama --version)"
+    log "Starting Ollama service..."
+    sudo systemctl start ollama 2>/dev/null || ollama serve &>/dev/null &
+
+    log "Waiting for Ollama to be ready..."
+    for i in $(seq 1 30); do
+        if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+            log "Ollama is ready."
+            return
+        fi
+        sleep 1
+    done
+
+    err "Ollama failed to start after 30 seconds. Try running 'ollama serve' manually."
 }
 
 # ---- Pull models ----

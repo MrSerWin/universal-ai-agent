@@ -97,33 +97,60 @@ install_system_deps() {
 
 # ---- Ollama ----
 install_ollama() {
-    if command -v ollama &>/dev/null; then
+    if ! command -v ollama &>/dev/null; then
+        log "Installing Ollama..."
+
+        # Check if Ollama.app exists
+        if [ -d "/Applications/Ollama.app" ]; then
+            log "Ollama.app found in Applications."
+        else
+            # Install via Homebrew (recommended on Mac)
+            brew install ollama 2>/dev/null || {
+                # Fallback: download from website
+                info "Downloading Ollama from ollama.com..."
+                curl -fsSL https://ollama.com/install.sh | sh
+            }
+        fi
+    else
         log "Ollama already installed: $(ollama --version 2>/dev/null || echo 'unknown')"
+    fi
+
+    # Start Ollama service and wait until it's ready
+    start_ollama_service
+}
+
+start_ollama_service() {
+    # Check if already responding
+    if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+        log "Ollama service already running."
         return
     fi
 
-    log "Installing Ollama..."
+    log "Starting Ollama service..."
 
-    # Check if Ollama.app exists
-    if [ -d "/Applications/Ollama.app" ]; then
-        log "Ollama.app found in Applications."
-    else
-        # Install via Homebrew (recommended on Mac)
-        brew install ollama 2>/dev/null || {
-            # Fallback: download from website
-            info "Downloading Ollama from ollama.com..."
-            curl -fsSL https://ollama.com/install.sh | sh
-        }
+    # Try brew services first (cleanest on Mac)
+    if command -v brew &>/dev/null; then
+        brew services start ollama 2>/dev/null || true
     fi
 
-    # Start Ollama service
-    if ! pgrep -x "ollama" >/dev/null 2>&1; then
-        log "Starting Ollama..."
+    # If brew services didn't work, start manually
+    if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
         ollama serve &>/dev/null &
-        sleep 3
+        OLLAMA_PID=$!
+        info "Started ollama serve (PID: ${OLLAMA_PID})"
     fi
 
-    log "Ollama ready."
+    # Wait for Ollama to be ready (up to 30 seconds)
+    log "Waiting for Ollama to be ready..."
+    for i in $(seq 1 30); do
+        if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+            log "Ollama is ready."
+            return
+        fi
+        sleep 1
+    done
+
+    err "Ollama failed to start after 30 seconds. Try running 'ollama serve' manually."
 }
 
 # ---- Pull models based on RAM tier ----
