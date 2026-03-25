@@ -1,0 +1,35 @@
+{
+    "// OPTION 1: Continue.dev (recommended — full IDE integration)": "",
+    "// Install: ext install Continue.continue": "",
+
+    "continue.models": [
+        {
+            "title": "aide-32B",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:32b-instruct-q4_K_M",
+            "apiBase": "http://localhost:11434",
+            "contextLength": 32768
+        },
+        {
+            "title": "aide-7B-fast",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:7b-instruct-q8_0",
+            "apiBase": "http://localhost:11434",
+            "contextLength": 32768
+        }
+    ],
+    "continue.tabAutocompleteModel": {
+        "title": "aide-autocomplete",
+        "provider": "ollama",
+        "model": "qwen2.5-coder:7b-instruct-q8_0",
+        "apiBase": "http://localhost:11434"
+    },
+    "continue.embeddingsProvider": {
+        "provider": "ollama",
+        "model": "nomic-embed-text",
+        "apiBase": "http://localhost:11434"
+    },
+
+    "// OPTION 2: Use aide CLI as VS Code task": "",
+    "// See .vscode/tasks.json for task definitions": ""
+}

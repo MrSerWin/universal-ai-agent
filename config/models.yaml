@@ -1,0 +1,57 @@
+models:
+  primary:
+    name: qwen2.5-coder:32b-instruct-q4_K_M
+    ollama_tag: qwen2.5-coder:32b-instruct-q4_K_M
+    context_length: 32768
+    description: "Main coding model — generation, review, refactoring"
+    roles:
+      - code_generation
+      - code_review
+      - refactoring
+      - architecture
+      - debugging
+      - security_review
+
+  fast:
+    name: qwen2.5-coder:7b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:7b-instruct-q8_0
+    context_length: 32768
+    description: "Fast model — routing, autocomplete, small edits"
+    roles:
+      - routing
+      - autocomplete
+      - classification
+      - small_edits
+      - commit_messages
+
+  alternative:
+    name: deepseek-coder-v2:16b-lite-instruct-q8_0
+    ollama_tag: deepseek-coder-v2:16b-lite-instruct-q8_0
+    context_length: 65536
+    description: "Alternative 16B model — faster than 32B, good quality"
+    roles:
+      - code_generation
+      - code_review
+      - refactoring
+      - debugging
+
+  embedding:
+    name: nomic-embed-text
+    ollama_tag: nomic-embed-text
+    context_length: 8192
+    description: "Embedding model for RAG indexing"
+    roles:
+      - embedding
+
+routing:
+  # Which model to use based on task complexity
+  strategy: auto  # auto | primary_only | fast_only | alternative
+  complexity_threshold:
+    simple: fast        # autocomplete, commit msgs, classification
+    medium: primary     # code gen, review, refactoring
+    complex: primary    # architecture, multi-file changes
+
+server:
+  host: "0.0.0.0"
+  port: 8800
+  ollama_host: "http://localhost:11434"
