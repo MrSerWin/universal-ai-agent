@@ -28,12 +28,13 @@ Fully local AI agent for software development. Runs on your hardware with no clo
 ## Quick Start
 
 ```bash
-# Clone into WSL
-git clone git@github.com:MrSerWin/universal-ai-agent.git ~/aide
+# Clone the project
+git clone https://github.com/MrSerWin/universal-ai-agent.git ~/aide
 cd ~/aide
 
-# Run setup (single command)
-bash scripts/setup-wsl.sh
+# Run setup (pick one)
+bash scripts/setup-mac.sh    # macOS (Apple Silicon)
+bash scripts/setup-wsl.sh    # Windows (WSL2 + NVIDIA GPU)
 
 # Check status
 aide status
@@ -65,6 +66,8 @@ aide chat
 | Qwen2.5-Coder-32B (Q4_K_M) | ~20GB VRAM | ~25-30 tok/s | Main work: generation, review, refactoring |
 | Qwen2.5-Coder-7B (Q8) | ~8GB VRAM | ~100+ tok/s | Fast tasks: autocomplete, classification, commits |
 | DeepSeek-Coder-V2-16B (Q8) | ~17GB VRAM | ~50-60 tok/s | Alternative to 32B: faster, slightly lower quality |
+| Qwen2.5-Coder-32B (Q8) | ~35GB RAM | ~15-20 tok/s | Mac primary: higher quality with unified memory |
+| Llama 3.1 70B (Q4_K_M) | ~42GB RAM | ~8-12 tok/s | Complex architecture tasks (96GB+ Mac) |
 | nomic-embed-text | ~0.3GB | — | Embeddings for RAG indexing |
 
 ## Stack
@@ -77,7 +80,8 @@ aide chat
 
 ## Documentation
 
-- [Setup Guide](docs/setup.md)
+- [Setup Guide — WSL/Linux](docs/setup.md)
+- [Setup Guide — macOS](docs/mac-setup.md)
 - [Architecture](docs/architecture.md)
 - [Commands Reference](docs/commands.md)
 - [Configuration](docs/configuration.md)

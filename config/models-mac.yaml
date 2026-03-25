@@ -1,0 +1,81 @@
+# ============================================================
+# aide — Model configuration for macOS (Apple Silicon)
+#
+# Optimized for Macs with 64GB+ unified memory.
+# Apple Silicon shares RAM between CPU and GPU, so larger
+# models can be loaded entirely into memory without offloading.
+#
+# Key difference from NVIDIA setup:
+#   - No VRAM limit — full system RAM is available
+#   - Metal backend is ~2-3x slower per token than CUDA
+#   - Use higher quantization (Q8 instead of Q4) for better quality
+#   - 70B models are feasible on 96GB+ machines
+#
+# To use this config:
+#   cp config/models-mac.yaml config/models.yaml
+# ============================================================
+
+models:
+  primary:
+    name: qwen2.5-coder:32b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:32b-instruct-q8_0
+    context_length: 32768
+    description: "Main coding model — Q8 quantization for better quality on Apple Silicon"
+    roles:
+      - code_generation
+      - code_review
+      - refactoring
+      - architecture
+      - debugging
+      - security_review
+
+  fast:
+    name: qwen2.5-coder:7b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:7b-instruct-q8_0
+    context_length: 32768
+    description: "Fast model — routing, autocomplete, small edits"
+    roles:
+      - routing
+      - autocomplete
+      - classification
+      - small_edits
+      - commit_messages
+
+  alternative:
+    name: qwen2.5-coder:14b-instruct-q8_0
+    ollama_tag: qwen2.5-coder:14b-instruct-q8_0
+    context_length: 32768
+    description: "Mid-size 14B model — good speed/quality balance on Mac"
+    roles:
+      - code_generation
+      - code_review
+      - refactoring
+      - debugging
+
+  heavy:
+    name: llama3.1:70b-instruct-q4_K_M
+    ollama_tag: llama3.1:70b-instruct-q4_K_M
+    context_length: 16384
+    description: "70B model for complex architecture tasks (requires 96GB+ RAM)"
+    roles:
+      - architecture
+
+  embedding:
+    name: nomic-embed-text
+    ollama_tag: nomic-embed-text
+    context_length: 8192
+    description: "Embedding model for RAG indexing"
+    roles:
+      - embedding
+
+routing:
+  strategy: auto
+  complexity_threshold:
+    simple: fast            # autocomplete, commit msgs, classification
+    medium: primary         # code gen, review, refactoring (32B Q8)
+    complex: primary        # architecture, multi-file changes
+
+server:
+  host: "0.0.0.0"
+  port: 8800
+  ollama_host: "http://localhost:11434"

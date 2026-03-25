@@ -18,6 +18,11 @@ COMPLEX_KEYWORDS = [
     "ci/cd", "pipeline", "deploy", "infrastructure",
 ]
 
+HEAVY_KEYWORDS = [
+    "system design", "full architecture", "design from scratch",
+    "migrate entire", "rewrite entire project", "plan the migration",
+]
+
 
 class ModelRouter:
     """Decides which model to use for a given task."""
@@ -26,8 +31,14 @@ class ModelRouter:
         self.config = config
 
     def classify_task(self, user_input: str) -> str:
-        """Classify task complexity: simple, medium, complex."""
+        """Classify task complexity: simple, medium, complex, heavy."""
         lower = user_input.lower()
+
+        # Check heavy first (subset of complex, needs 70B)
+        if "heavy" in self.config.models:
+            for kw in HEAVY_KEYWORDS:
+                if kw in lower:
+                    return "heavy"
 
         for kw in COMPLEX_KEYWORDS:
             if kw in lower:
